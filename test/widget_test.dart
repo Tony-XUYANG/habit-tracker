@@ -1,9 +1,4 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// 基础的 Widget 冒烟测试：验证 App 能正常启动并渲染出「每日打卡」标题
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,20 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:habit_tracker/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App 启动并显示标题', (WidgetTester tester) async {
+    // 构建 App 并触发一帧
+    await tester.pumpWidget(const HabitTrackerApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // 验证标题「每日打卡」已渲染
+    expect(find.text('每日打卡'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // 验证右下角「添加」按钮存在
+    expect(find.byIcon(Icons.add), findsOneWidget);
   });
 }

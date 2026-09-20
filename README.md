@@ -1,12 +1,16 @@
 # 🌱 每日打卡 · 习惯养成 App
 
-一个零基础友好的 Flutter 学习项目。用暖色治愈系界面，帮你记录每天的习惯打卡，统计连续坚持天数。
+一个零基础友好的 Flutter 学习项目。用暖色治愈系界面，帮你记录每天的习惯打卡，统计坚持天数，可视化你的成长轨迹。
 
 ## 功能一览
 
 - ✅ 添加 / 删除习惯（名称 + 自定义 emoji 图标）
-- ✅ 每日一键打卡 / 取消打卡
-- ✅ 自动统计「连续打卡天数」（🔥 火苗徽章）
+- ✅ 每日一键打卡 / 取消打卡（带缩放回弹动画）
+- ✅ 自动统计「连续打卡天数」（🔥 火苗徽章）+ 累计总次数
+- ✅ 今日完成度进度条 + 百分比
+- ✅ 近 30 天打卡热力图（类似 GitHub 贡献图）
+- ✅ 删除二次确认，防误删
+- ✅ 下拉刷新
 - ✅ 数据本地保存，重启 App 不丢失
 - ✅ 首次打开自带 3 条示例习惯
 
@@ -14,13 +18,17 @@
 
 | 知识点 | 位置 |
 | --- | --- |
-| `StatefulWidget` / `setState` 状态管理 | `HomePage`、`_AddHabitDialog` |
-| `StatelessWidget` 无状态组件 | `HabitTrackerApp`、`_HabitCard`、`_EmptyState` |
-| 数据模型 + JSON 序列化 | `Habit` 类 |
-| 本地存储 `shared_preferences` | `_loadHabits` / `_saveHabits` |
-| 对话框 `showDialog` | `_addHabit` |
-| 列表渲染 `ListView.builder` | `HomePage` |
-| Dart 日期运算 | `Habit.streak` |
+| 多文件项目分层（模型 / 服务 / 组件） | `lib/models` `lib/services` `lib/widgets` |
+| `StatefulWidget` / `setState` 状态管理 | `main.dart` 的 `HomePage`、`widgets/add_habit_dialog.dart` |
+| `StatelessWidget` 无状态组件 | `widgets/habit_card.dart`、`stats_header.dart`、`habit_heatmap.dart` |
+| 数据模型 + JSON 序列化 | `models/habit.dart` |
+| 本地存储 `shared_preferences` | `services/habit_store.dart` |
+| 动画（`AnimationController` + `TweenSequence`） | `widgets/habit_card.dart` 的 `_CheckButton` |
+| 对话框 `showDialog` | `main.dart` `_addHabit` / `_deleteHabit` |
+| 进度条 `LinearProgressIndicator` | `widgets/stats_header.dart` |
+| 热力图 `Wrap` 布局 + `Tooltip` | `widgets/habit_heatmap.dart` |
+| Dart 日期运算 | `models/habit.dart` 的 `streak` |
+| 下拉刷新 `RefreshIndicator` | `main.dart` |
 
 ## 如何运行
 
@@ -33,7 +41,7 @@ cd habit_tracker
 # 2. 拉取依赖（首次必须执行）
 flutter pub get
 
-# 3. 运行（会自动选择可用设备：模拟器 / 真机 / Chrome / Windows 桌面）
+# 3. 运行（自动选择可用设备：模拟器 / 真机 / Chrome / Windows 桌面）
 flutter run
 ```
 
@@ -48,26 +56,37 @@ flutter run
 
 ```
 lib/
-└── main.dart   # 全部代码都在这一个文件里，便于初学者从头读到尾
+├── main.dart                      # 程序入口 + 主界面
+├── theme.dart                     # 主题颜色配置
+├── models/
+│   └── habit.dart                 # 习惯数据模型
+├── services/
+│   └── habit_store.dart           # 本地存储服务
+└── widgets/
+    ├── habit_card.dart            # 习惯卡片（含打卡动画）
+    ├── add_habit_dialog.dart      # 添加习惯弹窗
+    ├── stats_header.dart          # 今日完成度统计卡片
+    └── habit_heatmap.dart         # 近 30 天热力图
 ```
 
-`main.dart` 内部阅读顺序（文件顶部有注释导航）：
+阅读顺序（每个文件顶部都有注释导航）：
 
-1. `main()` — 程序入口
-2. `HabitTrackerApp` — 应用外壳 + 暖色主题
-3. `Habit` — 数据模型（一个「习惯」长什么样）
-4. `HomePage` — 主界面 + 状态管理
-5. `_HabitCard` / `_AddHabitDialog` / `_EmptyState` — 各 UI 零件
+1. `main.dart` — 入口，理解整体如何组装
+2. `models/habit.dart` — 数据模型与业务逻辑
+3. `services/habit_store.dart` — 数据如何持久化
+4. `theme.dart` — 颜色风格如何统一管理
+5. `widgets/` — 每个 UI 组件如何独立封装
 
 ## 学习建议
 
 如果你是 Flutter 零基础，建议按这个顺序吃透本项目：
 
-1. 先跑起来，玩一遍「添加 → 打卡 → 删除」
-2. 读懂 `Habit` 类，理解数据模型
-3. 读懂 `HomePage`，理解 `setState` 如何驱动界面刷新
-4. 改动一个颜色、一个 emoji，观察变化，建立手感
-5. 尝试加一个新功能，比如「打卡弹提示」或「长按删除」
+1. 先跑起来，玩一遍「添加 → 打卡 → 删除 → 看热力图」
+2. 读懂 `habit.dart`，理解数据模型
+3. 读懂 `main.dart` 的 `HomePage`，理解 `setState` 如何驱动刷新
+4. 读懂 `habit_card.dart` 的动画部分，理解 `AnimationController`
+5. 改动一个颜色（去 `theme.dart`）、一个 emoji，建立手感
+6. 尝试加新功能，比如「打卡弹提示」「习惯分类」「每日提醒」
 
 ## License
 
