@@ -1,6 +1,7 @@
 // ============================================================
 // HabitCard：单个习惯的卡片
-// 显示 emoji、名称、连续天数、累计天数、今日打卡按钮（带动画）
+// 显示 emoji、名称、分类标签、连续天数、累计天数、今日打卡按钮（带动画）
+// 点击卡片主体可进入详情页。
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -11,58 +12,93 @@ class HabitCard extends StatelessWidget {
   final Habit habit;
   final VoidCallback onToggle; // 点击打卡按钮时触发
   final VoidCallback onDelete; // 点击删除时触发
+  final VoidCallback onTap; // 点击卡片主体（进入详情页）
 
   const HabitCard({
     super.key,
     required this.habit,
     required this.onToggle,
     required this.onDelete,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final done = habit.isDoneToday;
+    final cat = habit.category; // 分类
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // 左：大 emoji 图标
-            Text(habit.emoji, style: const TextStyle(fontSize: 32)),
-            const SizedBox(width: 16),
+      child: InkWell(
+        // InkWell 让卡片可点击，带水波纹反馈
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // 左：大 emoji 图标
+              Text(habit.emoji, style: const TextStyle(fontSize: 32)),
+              const SizedBox(width: 16),
 
-            // 中：名称 + 连续/累计天数
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    habit.name,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
+              // 中：名称 + 分类标签 + 统计
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      habit.name,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '🔥 连续 ${habit.streak} 天 · 累计 ${habit.totalDone} 次',
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        // 分类标签徽章
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cat.color.withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${cat.emoji} ${cat.label}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cat.color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '🔥 ${habit.streak} 天 · 累计 ${habit.totalDone} 次',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // 右：打卡按钮（带缩放动画）
-            _CheckButton(done: done, onToggle: onToggle),
+              // 右：打卡按钮（带缩放动画）
+              _CheckButton(done: done, onToggle: onToggle),
 
-            // 删除按钮
-            IconButton(
-              onPressed: onDelete,
-              icon: Icon(Icons.delete_outline, color: Colors.grey.shade400),
-            ),
-          ],
+              // 删除按钮
+              IconButton(
+                onPressed: onDelete,
+                icon: Icon(Icons.delete_outline, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -108,7 +144,6 @@ class _CheckButtonState extends State<_CheckButton>
   }
 
   void _handleTap() {
-    // 每次点击都从 0 开始播动画，产生缩放效果
     _controller.forward(from: 0);
     widget.onToggle();
   }
@@ -117,7 +152,6 @@ class _CheckButtonState extends State<_CheckButton>
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: _handleTap,
-      // ScaleTransition：让子组件跟随 _scale 动画缩放
       icon: ScaleTransition(
         scale: _scale,
         child: Icon(
